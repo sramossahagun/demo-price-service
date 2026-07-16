@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: price-service
+  sql:
+    init:
+      mode: never
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+logging:
+  level:
+    root: ERROR
+
+

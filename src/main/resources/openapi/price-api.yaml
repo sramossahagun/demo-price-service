@@ -1,0 +1,135 @@
+openapi: 3.1.0
+info:
+  title: Price Service API
+  version: 1.0.0
+  description: "PoC: API para consultar el precio aplicable a un producto."
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Prices
+    description: Operaciones relacionadas con la consulta de precios.
+paths:
+  /prices:
+    get:
+      tags:
+        - Prices
+      operationId: getApplicablePrice
+      summary: Obtiene el precio aplicable.
+      description: Devuelve el precio aplicable para un producto, una cadena y una fecha determinadas. Cuando existen varias tarifas válidas para el mismo intervalo, se aplica aquella con mayor prioridad.
+      parameters:
+        - name: pricingDate
+          in: query
+          required: true
+          description: Fecha para la que se desea consultar el precio.
+          schema:
+            type: string
+            format: date-time
+        - name: productId
+          in: query
+          required: true
+          description: Identificador del producto.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: brandId
+          in: query
+          required: true
+          description: Identificador de la cadena.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Precio encontrado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceResponse"
+        "400":
+          description: La petición contiene parámetros no válidos.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No existe ningún precio aplicable.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error interno.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    PriceResponse:
+      type: object
+      required:
+        - brandId
+        - productId
+        - priceList
+        - startDate
+        - endDate
+        - price
+        - currency
+      properties:
+        brandId:
+          type: integer
+          format: int64
+          description: Identificador de la cadena.
+        productId:
+          type: integer
+          format: int64
+          description: Identificador del producto.
+        priceList:
+          type: integer
+          format: int64
+          description: Tarifa aplicada.
+        startDate:
+          type: string
+          format: date-time
+          description: Fecha de inicio.
+        endDate:
+          type: string
+          format: date-time
+          description: Fecha de fin.
+        price:
+          type: number
+          format: double
+          description: Precio final aplicable.
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: EUR
+          description: Código ISO de la moneda.
+    ErrorResponse:
+      type: object
+      description: Información devuelta cuando se produce un error durante el procesamiento de la petición.
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: Código único que identifica el tipo de error.
+          example: PRICE_NOT_FOUND
+        message:
+          type: string
+          description: Mensaje breve del error.
+          example: No existe ningún precio aplicable para los criterios indicados.
+        description:
+          type: string
+          description: Información adicional que facilita el diagnóstico del error.
+          example: No se ha encontrado ninguna tarifa vigente para el producto 35455, la cadena 1 y la fecha indicada.
+        timestamp:
+          type: string
+          format: date-time
+          description: Fecha y hora en la que se produjo el error.
+          example: "2020-06-14T10:00:00"
